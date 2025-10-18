@@ -1,18 +1,18 @@
-# Use lightweight Python base
-FROM python:3.10-slim
+# Dockerfile for Python Flask App
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements and install dependencies
-COPY OSC/requirements.txt .
-
+# Copy dependency list and install
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the Flask app
-COPY OSC /app/OSC
+# Copy all project files
+COPY . .
 
-# Expose port
-EXPOSE 8000
+# Expose port (Flask default 5000)
+EXPOSE 5000
 
-# Run with gunicorn (production)
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "OSC.app:app"]
+# Run the Flask app
+CMD ["python", "app.py"]
+
