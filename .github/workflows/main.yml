@@ -31,6 +31,6 @@ jobs:
           ECR_REPOSITORY: college-app
           IMAGE_TAG: latest
         run: |
-          cd backend
+          cd OSC
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
