@@ -3,42 +3,34 @@ name: Build and Push Docker Image to ECR
 on:
   push:
     branches:
-      - main
+      - main # Change if your branch name is different
 
 jobs:
-  build-and-push:
+  build:
+    name: Build and Push
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
 
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: us-east-1
 
-      - name: Get AWS account ID
-        id: get-account
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "account_id=${ACCOUNT_ID}" >> $GITHUB_OUTPUT
-
-      - name: Log in to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push Docker image
+      - name: Build, tag, and push image to ECR
         env:
-          ECR_REGISTRY: ${{ steps.get-account.outputs.account_id }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: college-app
+          IMAGE_TAG: latest
         run: |
+          cd backend
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
